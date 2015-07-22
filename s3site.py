@@ -12,6 +12,7 @@ from boto.s3.connection import S3Connection
 import yaml
 import arrow
 from multiprocessing.dummy import Pool as ThreadPool
+import hashlib
 
 
 @click.group()
@@ -143,13 +144,23 @@ def get_remote_files(bucket=None):
     return remote_files
 
 
+def hash_file(file_name, block_size=65536):
+    hash = hashlib.md5()
+    with open(file_name, "r+b") as f:
+        buf = f.read(block_size)
+        while len(buf) > 0:
+            hash.update(buf)
+            buf = f.read(block_size)
+    return hash.hexdigest()
+
+
 def get_modified_files(bucket=None):
     local_files = get_local_files()
     remote_files = get_remote_files(bucket)
 
     modified_files = []
     for path, last_modified in local_files.items():
-        if path not in remote_files or last_modified > arrow.get(remote_files[path].last_modified):
+        if path not in remote_files or remote_files[path].etag[1:-1] != hash_file(path):
             modified_files.append(path)
 
     return modified_files

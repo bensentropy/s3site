@@ -21,7 +21,7 @@ aws:
 </pre>  
   
 For endpoints see:
-https://docs.aws.amazon.com/general/latest/gr/rande.html
+https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
 
 Optionally create a .s3siteignore file to prevent files being uploaded from your local file system:
 
@@ -34,8 +34,13 @@ Optionally create a .s3siteignore file to prevent files being uploaded from your
 .s3siteignore uses the fnmatch function see:
 https://docs.python.org/2/library/fnmatch.html
 
-Then run the sync command:
+Then run the sync command to publish all files in local directory to s3 bucket
+(note files are published with alc set to "public-read"):
 
 <pre>
 s3site sync
 </pre>
+
+## Road map
+
+* handle large files
