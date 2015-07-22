@@ -94,9 +94,9 @@ def upload_file(bucket, file_name):
 
 def get_bucket():
     settings = get_aws_settings()
-
     conn = S3Connection(aws_access_key_id=settings['access_key_id'],
-                        aws_secret_access_key=settings['secret_access_key'])
+                        aws_secret_access_key=settings['secret_access_key'],
+                        host=settings['endpoint'])
 
     return conn.get_bucket(settings['bucket'])
 

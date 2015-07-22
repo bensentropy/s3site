@@ -12,13 +12,16 @@ A command line tool to hlp manage static sites on Amazon's S3 service.
 
 Create a s3site.yaml file with your aws settings:
 
-<pre>  
+<pre>
 aws:
   bucket: "your-bucket-name"
   access_key_id: "your-access-key-id"
   secret_access_key: "your-secret-access-key"
+  endpoint: "s3-ap-southeast-1.amazonaws.com"
 </pre>  
   
+For endpoints see:
+https://docs.aws.amazon.com/general/latest/gr/rande.html
 
 Optionally create a .s3siteignore file to prevent files being uploaded from your local file system:
 

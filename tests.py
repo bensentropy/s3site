@@ -86,7 +86,8 @@ class TestInteractions(unittest.TestCase):
     @mock.patch('s3site.S3Connection')
     @mock.patch('s3site.get_aws_settings', return_value={"access_key_id": "access",
                                                          "secret_access_key": "secret",
-                                                         "bucket": "my_bucket"})
+                                                         "bucket": "my_bucket",
+                                                         "endpoint": "s3-us-west-2.amazonaws.com"})
     def test_get_bucket(self, mock_get_settings, mock_connection):
         s3site.get_bucket()
         self.assertTrue(mock_get_settings.called)
@@ -103,7 +104,6 @@ class TestInteractions(unittest.TestCase):
         self.assertEqual(results, [u'file1'])
 
     def test_get_remote_files(self):
-
         remote_files = s3site.get_remote_files(self.bucket)
 
         self.assertEqual(remote_files.keys(), ['home.html'])
