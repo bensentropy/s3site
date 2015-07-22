@@ -6,7 +6,7 @@ A command line tool to hlp manage static sites on Amazon's S3 service.
 ## Usage:
 
 <pre>
-  $ pip install git+git://github.com/bensentropy/s3site
+  $ pip install s3site
   $ s3site --help
 </pre>
 

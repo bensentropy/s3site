@@ -3,21 +3,11 @@ from setuptools import setup
 import codecs
 import os
 
-here = os.path.abspath(os.path.dirname(__file__))
-
-
-def read(*parts):
-    # intentionally *not* adding an encoding option to open
-    return codecs.open(os.path.join(here, *parts), 'r').read()
-
-long_description = read('README.md')
-
 
 setup(
     name='s3site',
     description='A command line tool to manage static sites on Amazons S3 service',
-    long_description=long_description,
-    version='0.1',
+    version='0.2',
     py_modules=['s3site'],
     include_package_data=True,
     install_requires=[
@@ -34,4 +24,5 @@ setup(
     author_email='me@bensentorpy.com',
     author='Ben Olsen',
     url="https://github.com/bensentropy/s3site",
+    download_url='https://github.com/bensentropy/s3site/archive/master.zip',
 )
