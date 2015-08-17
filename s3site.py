@@ -8,7 +8,7 @@ import SimpleHTTPServer
 import SocketServer
 from fnmatch import fnmatch
 from boto.s3.key import Key
-from boto.s3.connection import S3Connection
+from boto.s3.connection import S3Connection, OrdinaryCallingFormat
 import yaml
 import arrow
 from multiprocessing.dummy import Pool as ThreadPool
@@ -97,7 +97,8 @@ def get_bucket():
     settings = get_aws_settings()
     conn = S3Connection(aws_access_key_id=settings['access_key_id'],
                         aws_secret_access_key=settings['secret_access_key'],
-                        host=settings['endpoint'])
+                        host=settings['endpoint'],
+                        calling_format=OrdinaryCallingFormat())
 
     return conn.get_bucket(settings['bucket'])
 

@@ -7,7 +7,7 @@ import os
 setup(
     name='s3site',
     description='A command line tool to manage static sites on Amazons S3 service',
-    version='0.2',
+    version='0.2.1',
     py_modules=['s3site'],
     include_package_data=True,
     install_requires=[
