@@ -1,6 +1,6 @@
 # S3site
 
-A command line tool to hlp manage static sites on Amazon's S3 service.
+A command line tool to help manage static sites on Amazon's S3 service.
 
 
 ## Usage:
@@ -34,7 +34,7 @@ Optionally create a .s3siteignore file to prevent files being uploaded from your
 .s3siteignore uses the fnmatch function see:
 https://docs.python.org/2/library/fnmatch.html
 
-Then run the sync command to publish all files in local directory to s3 bucket
+Then run the sync command to publish all files in the local directory to s3 bucket
 (note files are published with alc set to "public-read"):
 
 <pre>
