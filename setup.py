@@ -11,10 +11,10 @@ setup(
     py_modules=['s3site'],
     include_package_data=True,
     install_requires=[
-        'PyYAML>=3.11',
-        'arrow>=0.6.0',
-        'boto>=2.38.0',
-        'click>=4.0',
+        'PyYAML>=5.1.1',
+        'arrow>=0.14.2',
+        'boto3>=',
+        'click>=7.0',
         'mock>=1.0.1',
     ],
     entry_points='''

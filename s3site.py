@@ -1,14 +1,17 @@
 # coding: utf-8
 from __future__ import absolute_import, unicode_literals
+
+import mimetypes
 from functools import partial
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+import boto3
 import click
 import os
 import datetime as dt
-import SimpleHTTPServer
-import SocketServer
 from fnmatch import fnmatch
-from boto.s3.key import Key
-from boto.s3.connection import S3Connection, OrdinaryCallingFormat
+
+
 import yaml
 import arrow
 from multiprocessing.dummy import Pool as ThreadPool
@@ -19,6 +22,7 @@ import hashlib
 def cli():
     pass
 
+
 @cli.command()
 @click.option('--port', default=8000, help='port for development server', type=int)
 def serve(port):
@@ -27,8 +31,13 @@ def serve(port):
     """
     click.echo("development server running at port: {0}".format(port))
 
-    handler = SimpleHTTPServer.SimpleHTTPRequestHandler
-    httpd = SocketServer.TCPServer(("", port), handler)
+    settings = get_aws_settings()
+    directory = settings.get('directory', '.')
+
+    os.chdir(directory)
+
+    server_address = ('', port)
+    httpd = HTTPServer(server_address, BaseHTTPRequestHandler)
     httpd.serve_forever()
 
 
@@ -37,8 +46,11 @@ def modified():
     """
     List local files modified since the last deployment
     """
-    click.echo("Listing local modified files")
-    [click.echo(x) for x in get_modified_files()]
+    settings = get_aws_settings()
+    directory = settings.get('directory', '.')
+
+    click.echo("Listing local modified files in: {0}".format(directory))
+    [click.echo(x.replace(directory, '')) for x in get_modified_files()]
 
 
 @cli.command()
@@ -46,7 +58,7 @@ def diff_remote():
     """
     List local files not in the remote bucket
     """
-    [click.echo(x.name) for x in get_remote_diff()]
+    [click.echo(x.key) for x in get_remote_diff()]
 
 
 @cli.command()
@@ -56,7 +68,7 @@ def truncate():
     """
     click.echo("Truncating remote s3 bucket")
     for item in get_remote_diff():
-        click.echo("{0} deleted".format(item.name))
+        click.echo("{0} deleted".format(item.key))
         item.delete()
 
 
@@ -70,8 +82,11 @@ def sync():
     bucket = get_bucket()
     modified_files = get_modified_files(bucket)
 
+    settings = get_aws_settings()
+    root = settings.get('directory', '.')
+
     pool = ThreadPool(4)
-    pool.map(partial(upload_file, bucket), modified_files)
+    pool.map(partial(upload_file, root, bucket), modified_files)
 
     click.echo('Site deployed')
 
@@ -84,23 +99,23 @@ def ls():
     [click.echo(x) for x in get_remote_files().keys()]
 
 
-def upload_file(bucket, file_name):
-    k = Key(bucket)
-    k.key = file_name
-    k.set_contents_from_filename(file_name)
-    k.set_acl('public-read')
+def upload_file(root, bucket, file_name):
+    mime_type, _ = mimetypes.guess_type(file_name)
+    bucket.upload_file(Filename=file_name, Key=file_name.replace(root + "/", ''),
+                       ExtraArgs={'ACL': 'public-read', "ContentType": mime_type or 'binary/octet-stream'})
 
     click.echo('Published {0}'.format(file_name))
 
 
 def get_bucket():
     settings = get_aws_settings()
-    conn = S3Connection(aws_access_key_id=settings['access_key_id'],
-                        aws_secret_access_key=settings['secret_access_key'],
-                        host=settings['endpoint'],
-                        calling_format=OrdinaryCallingFormat())
+    # conn = S3Connection(aws_access_key_id=settings['access_key_id'],
+    #                     aws_secret_access_key=settings['secret_access_key'],
+    #                     host=settings['endpoint'],
+    #                     calling_format=OrdinaryCallingFormat())
 
-    return conn.get_bucket(settings['bucket'])
+    s3 = boto3.resource('s3')
+    return s3.Bucket(settings['bucket'])
 
 
 def get_remote_diff():
@@ -112,12 +127,15 @@ def get_remote_diff():
 
 
 def get_local_files():
+    settings = get_aws_settings()
+    directory = settings.get('directory', '.')
+
     ignore_patterns = get_ignore_patterns()
     all_files = {}
 
-    for root, dirs, files in os.walk('.'):
+    for root, dirs, files in os.walk(directory):
         for file_name in files:
-            path = os.path.join(root, file_name)[2:]
+            path = os.path.join(root, file_name)
             # ignore excluded patterns
             if any([fnmatch(path, pattern) for pattern in ignore_patterns]):
                 continue
@@ -134,8 +152,8 @@ def get_remote_files(bucket=None):
         bucket = get_bucket()
 
     remote_files = {}
-    for remote_file in bucket.list():
-        file_name = remote_file.name
+    for remote_file in bucket.objects.all():
+        file_name = remote_file.key
         # Ignore directories
         if file_name[-1] == "/":
             continue
